@@ -7,7 +7,6 @@ import {
   integer,
   timestamp,
   pgEnum,
-  primaryKey,
 } from "drizzle-orm/pg-core";
 
 export const qualityEnum = pgEnum("quality", ["excellent", "good", "average", "poor"]);
@@ -17,9 +16,7 @@ export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: varchar("name", { length: 255 }).notNull(),
   slug: varchar("slug", { length: 255 }).unique().notNull(),
-  description: text("description"),
   icon: varchar("icon", { length: 50 }),
-  showEmpty: boolean("show_empty").notNull().default(true),
   order: integer("order").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -31,13 +28,11 @@ export const sites = pgTable("sites", {
   url: text("url").notNull(),
   logoUrl: text("logo_url").default(""),
   description: text("description").default(""),
-  categoryId: integer("category_id")
-    .references(() => categories.id)
-    .notNull(),
   quality: qualityEnum("quality").notNull().default("good"),
   clicks: integer("clicks").notNull().default(0),
   verified: boolean("verified").notNull().default(false),
   tags: text("tags").array(),
+  categoryId: integer("category_id").references(() => categories.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -55,9 +50,6 @@ export const requests = pgTable("requests", {
   id: serial("id").primaryKey(),
   siteName: varchar("site_name", { length: 255 }).notNull(),
   siteUrl: text("site_url").notNull(),
-  categoryId: integer("category_id")
-    .references(() => categories.id)
-    .notNull(),
   description: text("description").notNull(),
   status: requestStatusEnum("status").notNull().default("pending"),
   createdAt: timestamp("created_at").defaultNow().notNull(),

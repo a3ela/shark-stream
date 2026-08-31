@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useTheme } from "./theme-provider";
+import { useTheme } from "../providers/theme-provider";
 import { Palette } from "lucide-react";
 
 export default function ThemeChanger() {
@@ -33,7 +33,7 @@ export default function ThemeChanger() {
               onClick={() => changeTheme(theme.id)}
               className={`relative flex h-8 w-8 items-center justify-center rounded-full transition-all ${
                 currentTheme === theme.id
-                  ? "ring-2 ring-(--primary)/50 shadow-lg shadow-(--glow-tertiary)"
+                  ? "ring-2 ring-(--primary)/50 shadow-lg"
                   : "hover:bg-(--bg-glass-hover)/70"
               }`}
               aria-label={`Switch to ${theme.name} theme`}

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Home, Info, Send, Shield } from "lucide-react";
-import ThemeChanger from "./theme-changer";
+import ThemeChanger from "../theme-changer";
 import Image from "next/image";
 
 const NAV_LINKS = [

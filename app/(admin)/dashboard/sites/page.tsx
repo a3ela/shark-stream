@@ -68,10 +68,8 @@ export default function SitesPage() {
   }, []);
 
   useEffect(() => {
-    startTransition(() => {
-      fetchData(page);
-    });
-  }, [page, fetchData, startTransition]);
+    void (async () => { await fetchData(page); })();
+  }, [page, fetchData]);
 
   function openAdd() {
     setEditTarget(null);
@@ -206,8 +204,8 @@ export default function SitesPage() {
       ) : (
         <>
           <DataTable
-            columns={columns as any}
-            data={data.items as Record<string, unknown>[]}
+            columns={columns}
+            data={data.items}
             keyField="_id"
             emptyMessage="No sites found. Add one to get started."
             actions={(row) => (

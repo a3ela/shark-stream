@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useEffect, useCallback } from "react";
+import { ReactNode, useEffect, useCallback, useRef } from "react";
 import { X } from "lucide-react";
 
 interface ModalProps {
@@ -18,6 +18,7 @@ export default function Modal({
   children,
   size = "md",
 }: ModalProps) {
+  const closeButtonRef = useRef<HTMLButtonElement>(null);
   const handleKeyDown = useCallback(
     (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -29,6 +30,7 @@ export default function Modal({
     if (open) {
       document.addEventListener("keydown", handleKeyDown);
       document.body.style.overflow = "hidden";
+      requestAnimationFrame(() => closeButtonRef.current?.focus());
     }
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
@@ -39,16 +41,20 @@ export default function Modal({
   if (!open) return null;
 
   return (
-    <div className="modal-overlay" onClick={onClose} role="dialog" aria-modal="true">
+    <div className="modal-overlay" onClick={onClose} role="presentation">
       <div
         className={`modal modal--${size}`}
         onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
       >
         {/* Header */}
         <div className="modal__header">
-          <h2 className="modal__title">{title}</h2>
+          <h2 id="modal-title" className="modal__title">{title}</h2>
           <button
             id="modal-close-btn"
+            ref={closeButtonRef}
             className="modal__close"
             onClick={onClose}
             aria-label="Close modal"

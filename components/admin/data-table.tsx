@@ -3,21 +3,21 @@
 import { ReactNode } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-interface Column<T> {
+export interface Column<T extends object> {
   key: string;
   label: string;
   render?: (row: T) => ReactNode;
 }
 
-interface DataTableProps<T> {
+interface DataTableProps<T extends object> {
   columns: Column<T>[];
   data: T[];
-  keyField: string;
+  keyField: keyof T & string;
   emptyMessage?: string;
   actions?: (row: T) => ReactNode;
 }
 
-export function DataTable<T extends Record<string, unknown>>({
+export function DataTable<T extends object>({
   columns,
   data,
   keyField,
@@ -54,7 +54,7 @@ export function DataTable<T extends Record<string, unknown>>({
                   <td key={col.key} className="data-table__td">
                     {col.render
                       ? col.render(row)
-                      : String(row[col.key] ?? "—")}
+                      : String((row as Record<string, unknown>)[col.key] ?? "—")}
                   </td>
                 ))}
                 {actions && (

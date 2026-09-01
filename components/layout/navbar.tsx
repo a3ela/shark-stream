@@ -43,13 +43,7 @@ export default function Navbar() {
               height={32}
             />
 
-            <span
-              className="text-xl font-bold tracking-tight leading-none"
-              style={{
-                fontFamily: "Unbounded, sans-serif",
-                color: "var(--primary)",
-              }}
-            ></span>
+            <span className="text-xl font-bold tracking-tight leading-none text-(--primary)">Shark Stream</span>
           </Link>
 
           <div className="flex items-center gap-10">
@@ -86,7 +80,7 @@ export default function Navbar() {
             <ThemeChanger />
 
             <div className="w-px h-6 bg-(--border-color) mx-2" />
-            {session && (
+            {session?.user && (session.user as { role?: string }).role === "admin" && (
               <>
                   <Link
                   href="/dashboard"
@@ -141,11 +135,11 @@ export default function Navbar() {
             );
           })}
 
-          {session && (
+          {session?.user && (session.user as { role?: string }).role === "admin" && (
               <Link
               href="/dashboard"
                 className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
-                pathname.startsWith("/admin")
+                  pathname.startsWith("/dashboard")
                     ? "text-(--text-inverse) bg-(--primary) shadow-sm scale-105"
                     : "text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
                 }`}

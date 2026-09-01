@@ -1,4 +1,7 @@
 import { CircleHelp, Info, ShieldAlert, ShieldCheck } from "lucide-react";
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { title: "About", description: "Learn how Shark Stream curates third-party streaming site listings.", alternates: { canonical: "/about" } };
 
 const faqs = [
   {

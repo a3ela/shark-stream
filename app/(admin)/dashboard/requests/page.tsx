@@ -85,11 +85,7 @@ export default function RequestsPage() {
   );
 
   useEffect(() => {
-    fetchData(1, statusFilter);
-  }, [statusFilter, fetchData]);
-
-  useEffect(() => {
-    fetchData(page, statusFilter);
+    void (async () => { await fetchData(page, statusFilter); })();
   }, [page, fetchData, statusFilter]);
 
   function openAction(
@@ -180,7 +176,7 @@ export default function RequestsPage() {
             key={f.value}
             id={`filter-${f.value}-btn`}
             className={`admin-filter-tab ${statusFilter === f.value ? "admin-filter-tab--active" : ""}`}
-            onClick={() => setStatusFilter(f.value)}
+            onClick={() => { setPage(1); setStatusFilter(f.value); }}
           >
             {f.value === "pending" && <Clock size={13} />}
             {f.value === "approved" && <CheckCircle size={13} />}

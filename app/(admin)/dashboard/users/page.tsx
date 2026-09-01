@@ -47,7 +47,7 @@ export default function UsersPage() {
   }, []);
 
   useEffect(() => {
-    fetchData(page);
+    void (async () => { await fetchData(page); })();
   }, [page, fetchData]);
 
   function openRoleModal(user: User) {

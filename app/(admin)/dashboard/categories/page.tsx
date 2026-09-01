@@ -58,7 +58,7 @@ export default function CategoriesPage() {
   }, []);
 
   useEffect(() => {
-    fetchData(page);
+    void (async () => { await fetchData(page); })();
   }, [page, fetchData]);
 
   function openAdd() {

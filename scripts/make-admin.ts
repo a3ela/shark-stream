@@ -1,9 +1,4 @@
 import { MongoClient } from "mongodb";
-import { config } from "dotenv";
-
-// Load environment variables from .env.local
-config({ path: ".env.local" });
-
 const MONGODB_URL = process.env.MONGODB_URL;
 
 if (!MONGODB_URL) {

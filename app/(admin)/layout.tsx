@@ -1,24 +1,13 @@
 import type { Metadata } from "next";
-import { Roboto, Unbounded } from "next/font/google";
 import { ThemeProvider } from "@/providers/theme-provider";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/auth/auth";
 import AdminSidebar from "@/components/admin/sidebar";
-import "@/app/globals.css";
+import { Roboto, Unbounded } from "next/font/google";
+import "../globals.css";
 
-const roboto = Roboto({
-  variable: "--font-roboto",
-  weight: ["300", "400", "500", "700", "900"],
-  subsets: ["latin"],
-  display: "swap",
-});
-
-const unbounded = Unbounded({
-  variable: "--font-unbounded",
-  weight: ["200", "300", "400", "500", "600", "700", "800", "900"],
-  subsets: ["latin"],
-  display: "swap",
-});
+const roboto = Roboto({ variable: "--font-roboto", weight: ["300", "400", "500", "700", "900"], subsets: ["latin"], display: "swap" });
+const unbounded = Unbounded({ variable: "--font-unbounded", weight: ["200", "300", "400", "500", "600", "700", "800", "900"], subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
   title: {
@@ -46,8 +35,9 @@ export default async function AdminRootLayout({
   }
 
   return (
-   
-      <div className="min-h-full font-sans bg-[var(--bg-primary)]">
+    <html lang="en" className={`${roboto.variable} ${unbounded.variable} h-full antialiased`}>
+      <body className="min-h-full font-sans bg-[var(--bg-primary)]">
+      <div className="min-h-full">
         <ThemeProvider>
           <div className="admin-layout">
             <AdminSidebar />
@@ -56,6 +46,6 @@ export default async function AdminRootLayout({
             </div>
           </div>
         </ThemeProvider>
-      </div>
+      </div></body></html>
   );
 }

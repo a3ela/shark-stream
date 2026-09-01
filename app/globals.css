@@ -8,17 +8,17 @@
 
 /* ===== Base (default blueish theme) ===== */
 :root {
-  --bg-primary: #070707;
-  --bg-secondary: #0f0f0f;
+  --bg-primary: #111118;
+  --bg-secondary: #1a1a24;
 
   /* Glass: frosted surface with slight depth */
-  --bg-glass: rgba(30, 35, 50, 0.45);
-  --bg-glass-hover: rgba(40, 48, 68, 0.65);
+  --bg-glass: rgba(35,42,60, 0.5);
+  --bg-glass-hover: rgba(50, 58, 80, 0.377);
   --border-glass: rgba(255, 255, 255, 0.14);
 
   --text-primary: #f5f5f5;
   --text-secondary: #d4d4d4;
-  --text-inverse: #0f0f0f;
+  --text-inverse: #eeeeee;
   --border-color: rgba(255, 255, 255, 0.11);
   --shadow-color: rgba(0, 0, 0, 0.6);
 
@@ -31,9 +31,9 @@
   --glow-tertiary: rgba(59, 130, 246, 0.12);
 
   /* Named orb colors for ::before / ::after */
-  --orb-a: rgba(59, 130, 246, 0.35);
-  --orb-b: rgba(29, 78, 216, 0.25);
-  --orb-c: rgba(59, 130, 246, 0.18);
+  --orb-a: rgba(59,130,246, 0.45);
+  --orb-b: rgba(29,78,216, 0.35);
+  --orb-c: rgba(59,130,246, 0.25);
 }
 
 /* ===== Theme: Crimson ===== */
@@ -122,7 +122,6 @@ body::before {
     radial-gradient(circle 35vmax at 50% 50%, var(--orb-c) 0%, transparent 70%);
   pointer-events: none;
   z-index: -2;
-  animation: orbDrift 8s ease-in-out infinite;
 }
 
 /* ── Orb layer 2: smaller offset orbs for depth ── */
@@ -135,20 +134,6 @@ body::after {
     radial-gradient(circle 25vmax at 25% 15%, var(--orb-a) 0%, transparent 65%);
   pointer-events: none;
   z-index: -1;
-  animation: orbDrift 12s ease-in-out infinite reverse;
-}
-
-@keyframes orbDrift {
-  0%,
-  100% {
-    transform: translate(0%, 0%) scale(1);
-  }
-  33% {
-    transform: translate(2%, -3%) scale(1.04);
-  }
-  66% {
-    transform: translate(-3%, 2%) scale(0.97);
-  }
 }
 
 @keyframes pulseGlow {

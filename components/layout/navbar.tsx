@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Home, Info, Send, Shield } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Home, Info, Send, Shield, LogOut } from "lucide-react";
 import ThemeChanger from "../theme-changer";
 import Image from "next/image";
+import { useSession, signOut } from "@/lib/auth/auth-client";
 
 const NAV_LINKS = [
   { href: "/", label: "Sites", icon: Home },
@@ -15,6 +16,19 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session } = useSession();
+
+  const handleLogout = async () => {
+    await signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          router.push("/");
+          router.refresh();
+        },
+      },
+    });
+  };
 
   return (
     <>
@@ -28,6 +42,7 @@ export default function Navbar() {
               width={32}
               height={32}
             />
+
             <span
               className="text-xl font-bold tracking-tight leading-none"
               style={{
@@ -53,6 +68,7 @@ export default function Navbar() {
                     }`}
                   >
                     {link.label}
+
                     <span
                       className={`absolute left-4 right-4 -bottom-0.5 h-px bg-(--primary) origin-left transition-transform duration-300 ease-out ${
                         isActive
@@ -70,18 +86,33 @@ export default function Navbar() {
             <ThemeChanger />
 
             <div className="w-px h-6 bg-(--border-color) mx-2" />
+            {session && (
+              <>
+                  <Link
+                  href="/dashboard"
+                    className={`relative px-4 py-2 rounded-full text-sm font-medium leading-none transition-all duration-200 flex items-center gap-1.5 ${
+                      pathname.startsWith("/dashboard")
+                        ? "text-(--text-inverse) bg-(--primary) shadow-sm"
+                      : " hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
+                    }`}
+                  >
+                    <Shield className="w-4 h-4" />
+                    Admin
+                  </Link>
 
-            <Link
-              href="/admin"
-              className={`relative px-4 py-2 rounded-full text-sm font-medium leading-none transition-all duration-200 flex items-center gap-1.5 ${
-                pathname.startsWith("/admin")
-                  ? "text-(--text-inverse) bg-(--primary) shadow-sm"
-                  : " hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
-              }`}
-            >
-              <Shield className="w-4 h-4" />
-              Admin
-            </Link>
+                  <button
+                    onClick={handleLogout}
+                  className={`relative px-4 py-2 rounded-full text-sm font-medium leading-none transition-all duration-200 flex items-center gap-1.5 ${
+                    pathname.startsWith("/dashboard")
+                      ? "text-(--text-primary)"
+                      : " hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
+                  }`}
+                  >
+                    <LogOut className="w-4 h-4" />
+                    Logout
+                  </button>
+              </>
+            )}
           </div>
         </div>
       </nav>
@@ -110,17 +141,21 @@ export default function Navbar() {
             );
           })}
 
-          <Link
-            href="/admin"
-            className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
-              pathname.startsWith("/admin")
-                ? "text-(--text-inverse) bg-(--primary) shadow-sm scale-105"
-                : "text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
-            }`}
-          >
-            <Shield className="w-5 h-5" />
-            <span className="text-[10px] font-medium leading-none">Admin</span>
-          </Link>
+          {session && (
+              <Link
+              href="/dashboard"
+                className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
+                pathname.startsWith("/admin")
+                    ? "text-(--text-inverse) bg-(--primary) shadow-sm scale-105"
+                    : "text-(--text-secondary) hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
+                }`}
+              >
+                <Shield className="w-5 h-5" />
+                <span className="text-[10px] font-medium leading-none">
+                  Admin
+                </span>
+              </Link>
+          )}
         </div>
       </nav>
     </>

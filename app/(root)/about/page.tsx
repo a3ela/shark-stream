@@ -59,14 +59,14 @@ export default function About() {
       <div className="grid gap-6 md:grid-cols-2">
         {/* What is Shark Stream? */}
         <section
-          className="rounded-2xl border-(--border) bg-(--bg-glass) p-6"
+          className="rounded border-(--border) bg-(--bg-glass) p-6"
           style={{
             boxShadow:
               "0 0 0 1px var(--primary, #3b82f6) inset, 0 0 40px var(--glow-color), 0 8px 32px rgba(0,0,0,0.5)",
             borderTopColor: "rgba(255,255,255,0.25)",
           }}
         >
-          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-(--primary)/10 text-(--primary)">
+          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded bg-(--primary)/10 text-(--primary)">
             <Info className="h-6 w-6" />
           </div>
 
@@ -84,14 +84,14 @@ export default function About() {
 
         {/* Third-Party Sites */}
         <section
-          className="rounded-2xl  border-(--border) bg-(--bg-glass) p-6"
+          className="rounded  border-(--border) bg-(--bg-glass) p-6"
           style={{
             boxShadow:
               "0 0 0 1px var(--primary, #3b82f6) inset, 0 0 40px var(--glow-color), 0 8px 32px rgba(0,0,0,0.5)",
             borderTopColor: "rgba(255,255,255,0.25)",
           }}
         >
-          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-(--primary)/10 text-(--primary)">
+          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded bg-(--primary)/10 text-(--primary)">
             <ShieldAlert className="h-6 w-6" />
           </div>
 
@@ -117,14 +117,14 @@ export default function About() {
 
         {/* Safety */}
         <section
-          className="rounded-2xl  border-(--border) bg-(--bg-glass) p-6"
+          className="rounded  border-(--border) bg-(--bg-glass) p-6"
           style={{
             boxShadow:
               "0 0 0 1px var(--primary, #3b82f6) inset, 0 0 40px var(--glow-color), 0 8px 32px rgba(0,0,0,0.5)",
             borderTopColor: "rgba(255,255,255,0.25)",
           }}
         >
-          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-(--primary)/10 text-(--primary)">
+          <div className="mb-5 flex h-12 w-12 items-center justify-center rounded bg-(--primary)/10 text-(--primary)">
             <ShieldCheck className="h-6 w-6" />
           </div>
 
@@ -174,7 +174,7 @@ export default function About() {
       {/* FAQ Section */}
       <section className="mt-12">
         <div className="mb-6 flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-(--primary)/10 text-(--primary)">
+          <div className="flex h-10 w-10 items-center justify-center rounded bg-(--primary)/10 text-(--primary)">
             <CircleHelp className="h-6 w-6" />
           </div>
 
@@ -187,7 +187,7 @@ export default function About() {
           {faqs.map((faq) => (
             <article
               key={faq.question}
-              className="rounded-2xl border border-(--border) bg-(--bg-glass) p-6"
+              className="rounded border border-(--border) bg-(--bg-glass) p-6"
             >
               <h3 className="mb-2 font-heading text-lg font-semibold">
                 {faq.question}

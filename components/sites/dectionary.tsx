@@ -4,6 +4,7 @@ import { useState, useMemo, useCallback } from "react";
 import CategorySidebar from "./category-sidebar";
 import SearchBar from "./search-bar";
 import SiteCard from "./site-card";
+import WarnBar from "../warnbar";
 
 interface Category {
   _id: string;
@@ -112,7 +113,7 @@ export default function Dectionary({
             </div>
             <SearchBar value={searchQuery} onChange={setSearchQuery} />
           </div>
-
+    <WarnBar />
           {/* Card grid */}
           {filteredSites.length > 0 ? (
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">

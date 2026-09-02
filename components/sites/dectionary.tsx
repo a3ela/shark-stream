@@ -100,10 +100,10 @@ export default function Dectionary({
         <div className="flex-1 min-w-0">
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
-              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-(--text-secondary) mb-1">
+              <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-(--text-secondary) mb-2">
                 The Index / {sectionLabel}
               </p>
-              <h2 className="font-heading text-4xl font-extrabold text-(--text-primary)">
+              <h2 className="font-heading text-4xl font-extrabold text-(--text-primary) mb-4">
                 Take your pick
               </h2>
               <p className="text-sm text-(--text-secondary)">

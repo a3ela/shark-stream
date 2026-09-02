@@ -72,7 +72,7 @@ export default function SiteCard({
             height={120}
             src={site.logoUrl}
             alt={site.name}
-            className="h-25 w-25 object-contain"
+            className="h-25 w-25 object-contain transition-transform duration-300 ease-out group-hover:scale-110"
           />
         ) : (
           <div className="flex h-25 w-25 items-center justify-center rounded-xl bg-(--primary)/10 text-lg font-bold text-(--primary)">

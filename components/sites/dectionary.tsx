@@ -84,7 +84,7 @@ export default function Dectionary({
   }, [selectedCategory, categories]);
 
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 md:px-6">
+    <section className="mx-auto max-w-7xl px-4 py-8 md:px-6" id="explore">
       <div className="flex flex-col lg:flex-row lg:gap-10">
         {/* Sidebar */}
         <aside className="mb-6 lg:mb-0">
@@ -104,7 +104,7 @@ export default function Dectionary({
                 The Index / {sectionLabel}
               </p>
               <h2 className="font-heading text-4xl font-extrabold text-(--text-primary)">
-                Recently surfaced
+                Take your pick
               </h2>
               <p className="text-sm text-(--text-secondary)">
                 {filteredSites.length} results ready to explore
@@ -132,7 +132,7 @@ export default function Dectionary({
                 No sites found
               </p>
               <p className="text-sm text-(--text-secondary)">
-                Try adjusting your filters or search query.
+                Try a different search or category.
               </p>
             </div>
           )}

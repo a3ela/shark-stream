@@ -1,5 +1,6 @@
+"use client";
+
 import Image from "next/image";
-import Link from "next/link";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
 interface BannerProps {
@@ -14,8 +15,8 @@ const Banner = ({ siteCount }: BannerProps) => {
           <Image
             src="/logo.svg"
             alt="Shark Stream logo"
-            width={100}
-            height={100}
+            width={120}
+            height={120}
             className="h-20 w-20 shrink-0 object-contain md:h-20 md:w-20"
           />
           <h1 className="text-shimmer font-unbounded text-5xl font-extrabold leading-none tracking-tight md:text-6xl">
@@ -23,7 +24,7 @@ const Banner = ({ siteCount }: BannerProps) => {
           </h1>
         </div>
         <p className="ml-1 text-lg text-(--text-secondary) md:ml-1.5 md:text-xl">
-          Discover and manage your streaming sites with ease.
+          Discover streaming sites, all in one place.
         </p>
       </div>
 
@@ -60,7 +61,7 @@ const Banner = ({ siteCount }: BannerProps) => {
           }}
         >
           <span
-            className="mb-3 block text-[13px] font-bold uppercase tracking-[0.2em]"
+            className="mb-3 block text-[14px] font-bold uppercase tracking-[0.2em] italic"
             style={{ color: "var(--primary)" }}
           >
             Tonight&apos;s Pick
@@ -69,24 +70,28 @@ const Banner = ({ siteCount }: BannerProps) => {
           <h2 className="mb-3 font-heading text-[1.65rem] font-extrabold leading-tight text-white">
             Find your next
             <br />
-            stream.
+            obsession.
           </h2>
 
           <p
             className="mb-5 text-sm leading-relaxed"
             style={{ color: "rgba(180,195,210,0.7)" }}
           >
-            Browse something unexpected from our curated directory.
+            One directory, every genre covered.
           </p>
 
-          <Link
-            href="/"
+          <button
+            onClick={() =>
+              document
+                .getElementById("explore")
+                ?.scrollIntoView({ behavior: "smooth" })
+            }
             className="group inline-flex items-center gap-1.5 text-sm font-bold transition-all duration-200"
             style={{ color: "var(--secondary)" }}
           >
             Explore the index
             <ArrowUpRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </Link>
+          </button>
         </div>
 
         {/* Floating badge */}

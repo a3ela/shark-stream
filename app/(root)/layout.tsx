@@ -9,7 +9,7 @@ const roboto = Roboto({ variable: "--font-roboto", weight: ["300", "400", "500",
 const unbounded = Unbounded({ variable: "--font-unbounded", weight: ["200", "300", "400", "500", "600", "700", "800", "900"], subsets: ["latin"], display: "swap" });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://sharkstream.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://sharkstream.lol"),
   title: { template: "%s | Shark Stream", default: "Shark Stream — Streaming Site Directory" },
   description: "A curated directory for discovering streaming sites across the web.",
   alternates: { canonical: "/" },

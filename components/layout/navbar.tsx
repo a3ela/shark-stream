@@ -42,8 +42,6 @@ export default function Navbar() {
               width={32}
               height={32}
             />
-
-            <span className="text-xl font-bold tracking-tight leading-none text-(--primary)">Shark Stream</span>
           </Link>
 
           <div className="flex items-center gap-10">
@@ -80,14 +78,15 @@ export default function Navbar() {
             <ThemeChanger />
 
             <div className="w-px h-6 bg-(--border-color) mx-2" />
-            {session?.user && (session.user as { role?: string }).role === "admin" && (
-              <>
+            {session?.user &&
+              (session.user as { role?: string }).role === "admin" && (
+                <>
                   <Link
-                  href="/dashboard"
+                    href="/dashboard"
                     className={`relative px-4 py-2 rounded-full text-sm font-medium leading-none transition-all duration-200 flex items-center gap-1.5 ${
                       pathname.startsWith("/dashboard")
                         ? "text-(--text-inverse) bg-(--primary) shadow-sm"
-                      : " hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
+                        : " hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
                     }`}
                   >
                     <Shield className="w-4 h-4" />
@@ -96,17 +95,17 @@ export default function Navbar() {
 
                   <button
                     onClick={handleLogout}
-                  className={`relative px-4 py-2 rounded-full text-sm font-medium leading-none transition-all duration-200 flex items-center gap-1.5 ${
-                    pathname.startsWith("/dashboard")
-                      ? "text-(--text-primary)"
-                      : " hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
-                  }`}
+                    className={`relative px-4 py-2 rounded-full text-sm font-medium leading-none transition-all duration-200 flex items-center gap-1.5 ${
+                      pathname.startsWith("/dashboard")
+                        ? "text-(--text-primary)"
+                        : " hover:text-(--text-primary) hover:bg-(--bg-glass-hover)/70"
+                    }`}
                   >
                     <LogOut className="w-4 h-4" />
                     Logout
                   </button>
-              </>
-            )}
+                </>
+              )}
           </div>
         </div>
       </nav>
@@ -135,9 +134,10 @@ export default function Navbar() {
             );
           })}
 
-          {session?.user && (session.user as { role?: string }).role === "admin" && (
+          {session?.user &&
+            (session.user as { role?: string }).role === "admin" && (
               <Link
-              href="/dashboard"
+                href="/dashboard"
                 className={`flex flex-col items-center justify-center gap-0.5 px-3 py-1.5 rounded-xl transition-all duration-200 ${
                   pathname.startsWith("/dashboard")
                     ? "text-(--text-inverse) bg-(--primary) shadow-sm scale-105"
@@ -149,7 +149,7 @@ export default function Navbar() {
                   Admin
                 </span>
               </Link>
-          )}
+            )}
         </div>
       </nav>
     </>

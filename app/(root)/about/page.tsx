@@ -1,7 +1,12 @@
 import { CircleHelp, Info, ShieldAlert, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 
-export const metadata: Metadata = { title: "About", description: "Learn how Shark Stream curates third-party streaming site listings.", alternates: { canonical: "/about" } };
+export const metadata: Metadata = {
+  title: "About",
+  description:
+    "Learn how Shark Stream curates third-party streaming site listings.",
+  alternates: { canonical: "/about" },
+};
 
 const faqs = [
   {
@@ -22,7 +27,7 @@ const faqs = [
   {
     question: "Are the listed sites safe?",
     answer:
-      "We do our best to verify sites before listing them, but we cannot guarantee the safety of third-party websites. Always use caution, keep your browser updated, and consider using an ad blocker and antivirus software when visiting unfamiliar sites.",
+      "We try to vet sites before listing them, but we cannot guarantee the safety of third-party websites. Always use caution, keep your browser updated, and consider using an ad blocker and antivirus software when visiting unfamiliar sites.",
   },
   {
     question: "Do you host any content?",
@@ -40,12 +45,12 @@ export default function About() {
   return (
     <main className="mx-auto max-w-5xl px-4 py-12">
       {/* Header */}
-      <header className="mb-12 text-center">
-        <h1 className="mb-4 font-heading text-4xl font-bold">
+      <header className="mb-12">
+        <h1 className="mb-4 font-heading text-4xl font-bold ">
           About Shark Stream
         </h1>
 
-        <p className="mx-auto max-w-2xl text-lg leading-relaxed text-(--text-secondary)">
+        <p className="text-(--text-secondary)">
           Your go-to directory for discovering streaming sites across the web.
         </p>
       </header>
@@ -70,11 +75,10 @@ export default function About() {
           </h2>
 
           <p className="leading-relaxed text-(--text-secondary)">
-            Shark Stream is a curated directory of streaming websites organized
-            by category and region. Whether you&apos;re looking for movies, TV
-            shows, anime, live sports, or apps, we help you find the right site
-            quickly. We aggregate links so you don&apos;t have to search the web
-            endlessly.
+            Shark Stream is a curated directory of streaming websites, organized
+            by category and region. Whether you&apos;re after movies, anime,
+            live sports, or apps, we help you find the right site fast — so you
+            don&apos;t have to dig through the web yourself.
           </p>
         </section>
 
@@ -129,9 +133,8 @@ export default function About() {
           </h2>
 
           <p className="mb-4 leading-relaxed text-(--text-secondary)">
-            While we strive to list reputable and functional sites, visiting
-            third-party websites always carries inherent risks. We strongly
-            recommend:
+            While we do our best to list reputable, working sites, visiting any
+            third-party website carries some risk. We recommend:
           </p>
 
           <ul className="space-y-3 text-(--text-secondary)">

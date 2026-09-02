@@ -12,18 +12,27 @@ export default function RequestForm({ categories }: RequestFormProps) {
   const [message, setMessage] = useState<string | null>(null);
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     startTransition(async () => {
-      const result = await submitSiteRequest({
-        name: String(form.get("name") ?? ""),
-        url: String(form.get("url") ?? ""),
-        categoryId: String(form.get("categoryId") ?? ""),
-        submittedByEmail: String(form.get("email") ?? ""),
-      });
-      if (result.success) {
-        event.currentTarget.reset();
-        setMessage("Thanks — your request is now awaiting review.");
-      } else setMessage(result.error ?? "Unable to submit your request.");
+      try {
+        const result = await submitSiteRequest({
+          name: String(form.get("name") ?? ""),
+          url: String(form.get("url") ?? ""),
+          categoryId: String(form.get("categoryId") ?? ""),
+          submittedByEmail: String(form.get("email") ?? ""),
+        });
+        if (result.success) {
+          formElement.reset();
+          setMessage("Thanks — your request is now awaiting review.");
+        } else {
+          setMessage(result.error ?? "Unable to submit your request.");
+        }
+      } catch (err: unknown) {
+        setMessage(
+          err instanceof Error ? err.message : "Unable to submit your request.",
+        );
+      }
     });
   }
   return (

@@ -9,7 +9,19 @@ import { Types } from "mongoose";
 import { getSession } from "@/lib/auth/auth";
 import { revalidatePath } from "next/cache";
 
-const client = new MongoClient(process.env.MONGODB_URL as string);
+declare global {
+  var _adminMongoClient: MongoClient | undefined;
+}
+
+let client: MongoClient;
+if (process.env.NODE_ENV === "development") {
+  if (!global._adminMongoClient) {
+    global._adminMongoClient = new MongoClient(process.env.MONGODB_URL as string);
+  }
+  client = global._adminMongoClient;
+} else {
+  client = new MongoClient(process.env.MONGODB_URL as string);
+}
 const requestCooldowns = new Map<string, number>();
 
 function requiredText(value: unknown, field: string, max = 500) {
@@ -188,6 +200,10 @@ export async function createSite(data: {
   logoUrl: string;
   category: string;
   verified: boolean;
+  ads?: "none" | "low" | "high";
+  quality?: string;
+  tags?: string[];
+  requiresLogin?: boolean;
 }) {
   await requireAdmin();
   await connectDB();
@@ -197,6 +213,12 @@ export async function createSite(data: {
     url: validUrl(data.url),
     logoUrl: data.logoUrl ? validUrl(data.logoUrl) : "",
     category: objectId(data.category, "Category"),
+    ads: ["none", "low", "high"].includes(data.ads || "") ? data.ads : "none",
+    quality: data.quality?.trim() || "",
+    tags: Array.isArray(data.tags)
+      ? data.tags.map((t) => t.trim()).filter(Boolean)
+      : [],
+    requiresLogin: Boolean(data.requiresLogin),
   });
   revalidatePath("/dashboard/sites");
   return JSON.parse(JSON.stringify(site));
@@ -210,6 +232,10 @@ export async function updateSite(
     logoUrl: string;
     category: string;
     verified: boolean;
+    ads: "none" | "low" | "high";
+    quality: string;
+    tags: string[];
+    requiresLogin: boolean;
   }>,
 ) {
   await requireAdmin();
@@ -346,6 +372,14 @@ export async function updateRequestStatus(
   id: string,
   status: "approved" | "rejected",
   notes?: string,
+  customSiteData?: {
+    name?: string;
+    category?: string;
+    ads?: "none" | "low" | "high";
+    quality?: string;
+    tags?: string[];
+    requiresLogin?: boolean;
+  },
 ) {
   await requireAdmin();
   await connectDB();
@@ -354,14 +388,22 @@ export async function updateRequestStatus(
   if (!request) throw new Error("Request not found");
   if (status === "approved") {
     const existingSite = await Site.exists({ url: request.url });
-    if (!existingSite)
+    if (!existingSite) {
       await Site.create({
-        name: request.name,
+        name: customSiteData?.name || request.name,
         url: request.url,
         logoUrl: "",
-        category: request.categoryId,
-        verified: false,
+        category: customSiteData?.category || request.categoryId,
+        verified: true,
+        ads: customSiteData?.ads || request.aiMetadata?.ads || "none",
+        quality: customSiteData?.quality || request.aiMetadata?.quality || "1080p",
+        tags: customSiteData?.tags || request.aiMetadata?.tags || [],
+        requiresLogin:
+          typeof customSiteData?.requiresLogin === "boolean"
+            ? customSiteData.requiresLogin
+            : Boolean(request.aiMetadata?.requiresLogin),
       });
+    }
   }
   await SiteRequest.findByIdAndUpdate(
     id,
@@ -369,6 +411,7 @@ export async function updateRequestStatus(
     { runValidators: true },
   );
   revalidatePath("/dashboard/requests");
+  revalidatePath("/dashboard/sites");
 }
 
 export async function deleteRequest(id: string) {
@@ -377,6 +420,134 @@ export async function deleteRequest(id: string) {
   objectId(id);
   await SiteRequest.findByIdAndDelete(id);
   revalidatePath("/dashboard/requests");
+}
+
+// ─── AI Actions ─────────────────────────────────────────────────────────────
+
+export async function inspectSiteWithAI(targetUrl: string) {
+  await requireAdmin();
+  await connectDB();
+  const url = validUrl(targetUrl);
+  const categories = await Category.find({}, "_id name").lean();
+  const { analyzeSiteWithGemini } = await import("@/lib/ai");
+  const result = await analyzeSiteWithGemini(
+    url,
+    categories.map((c) => ({ _id: String(c._id), name: c.name }))
+  );
+  return result;
+}
+
+export async function analyzeRequestWithAI(requestId: string) {
+  await requireAdmin();
+  await connectDB();
+  objectId(requestId);
+  const request = await SiteRequest.findById(requestId).lean();
+  if (!request) throw new Error("Request not found");
+
+  const categories = await Category.find({}, "_id name").lean();
+  const { analyzeSiteWithGemini } = await import("@/lib/ai");
+  const aiResult = await analyzeSiteWithGemini(
+    request.url,
+    categories.map((c) => ({ _id: String(c._id), name: c.name }))
+  );
+
+  await SiteRequest.findByIdAndUpdate(requestId, {
+    aiRecommendation: aiResult.statusRecommendation,
+    aiReason: aiResult.recommendationReason,
+    aiMetadata: {
+      ads: aiResult.ads,
+      quality: aiResult.quality,
+      tags: aiResult.tags,
+      requiresLogin: aiResult.requiresLogin,
+      categorySuggestion: aiResult.categorySuggestion,
+    },
+  });
+
+  revalidatePath("/dashboard/requests");
+  return aiResult;
+}
+
+// ─── URL Health Check ─────────────────────────────────────────────────────────
+
+type UrlStatus = "live" | "dead" | "redirect" | "blocked";
+
+async function checkOneUrl(url: string): Promise<{ status: UrlStatus; code: number | null }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  try {
+    // Try HEAD first (lightweight)
+    let res = await fetch(url, {
+      method: "HEAD",
+      signal: controller.signal,
+      redirect: "follow",
+      headers: {
+        "User-Agent":
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+      },
+    });
+
+    // Some servers reject HEAD — retry with GET
+    if (res.status === 405) {
+      res = await fetch(url, {
+        method: "GET",
+        signal: controller.signal,
+        redirect: "follow",
+        headers: {
+          "User-Agent":
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        },
+      });
+    }
+
+    clearTimeout(timeoutId);
+    const code = res.status;
+
+    if (code >= 200 && code < 300) return { status: "live", code };
+    if (code === 301 || code === 302 || code === 307 || code === 308)
+      return { status: "redirect", code };
+    if (code === 403 || code === 401 || code === 429)
+      return { status: "blocked", code };
+    return { status: "dead", code };
+  } catch {
+    clearTimeout(timeoutId);
+    return { status: "dead", code: null };
+  }
+}
+
+export async function checkSiteUrls() {
+  await requireAdmin();
+  await connectDB();
+
+  const sites = await Site.find({}, "_id name url").lean();
+
+  const results: {
+    _id: string;
+    name: string;
+    url: string;
+    status: UrlStatus;
+    code: number | null;
+  }[] = [];
+
+  // Process in batches of 5 to avoid hammering the server
+  const BATCH = 5;
+  for (let i = 0; i < sites.length; i += BATCH) {
+    const batch = sites.slice(i, i + BATCH);
+    const batchResults = await Promise.all(
+      batch.map(async (site) => {
+        const { status, code } = await checkOneUrl(site.url);
+        return {
+          _id: String(site._id),
+          name: site.name,
+          url: site.url,
+          status,
+          code,
+        };
+      })
+    );
+    results.push(...batchResults);
+  }
+
+  return results;
 }
 
 // ─── Public: Submit Site Request ─────────────────────────────────────────────

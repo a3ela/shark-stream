@@ -3,14 +3,16 @@
 import { useState, useEffect, useTransition, useCallback } from "react";
 import { DataTable, Pagination } from "@/components/admin/data-table";
 import Modal from "@/components/admin/modal";
+import ImageDropzone from "@/components/admin/image-dropzone";
 import {
   getPaginatedSites,
   createSite,
   updateSite,
   deleteSite,
   getPaginatedCategories,
+  inspectSiteWithAI,
 } from "@/lib/actions/admin";
-import { Plus, Pencil, Trash2, Loader2, ExternalLink, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, ExternalLink, CheckCircle, XCircle, Sparkles } from "lucide-react";
 
 interface Category {
   _id: string;
@@ -26,6 +28,10 @@ interface Site {
   logoUrl: string;
   category: Category | null;
   verified: boolean;
+  ads?: "none" | "low" | "high";
+  quality?: string;
+  tags?: string[];
+  requiresLogin?: boolean;
   createdAt: string;
 }
 
@@ -35,6 +41,10 @@ const EMPTY_FORM = {
   logoUrl: "",
   category: "",
   verified: false,
+  ads: "none" as "none" | "low" | "high",
+  quality: "",
+  tags: "",
+  requiresLogin: false,
 };
 
 export default function SitesPage() {
@@ -55,6 +65,38 @@ export default function SitesPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [deleteTarget, setDeleteTarget] = useState<Site | null>(null);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [aiInspecting, setAiInspecting] = useState(false);
+  const [aiFeedback, setAiFeedback] = useState<string | null>(null);
+
+  async function handleAIInspect() {
+    if (!form.url) {
+      setAiFeedback("Please enter a URL first.");
+      return;
+    }
+    setAiInspecting(true);
+    setAiFeedback(null);
+    try {
+      const result = await inspectSiteWithAI(form.url);
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name || result.name,
+        category: prev.category || result.categoryId || "",
+        ads: result.ads,
+        quality: result.quality,
+        tags: result.tags.join(", "),
+        requiresLogin: result.requiresLogin,
+      }));
+      setAiFeedback(
+        `Gemini suggestion applied! ${result.recommendationReason} (Review & adjust anything before saving)`
+      );
+    } catch (err: unknown) {
+      setAiFeedback(
+        err instanceof Error ? err.message : "AI inspection failed. Check your GEMINI_API_KEY."
+      );
+    } finally {
+      setAiInspecting(false);
+    }
+  }
 
   const fetchData = useCallback(async (p: number) => {
     setLoading(true);
@@ -74,17 +116,23 @@ export default function SitesPage() {
   function openAdd() {
     setEditTarget(null);
     setForm(EMPTY_FORM);
+    setAiFeedback(null);
     setModalOpen(true);
   }
 
   function openEdit(site: Site) {
     setEditTarget(site);
+    setAiFeedback(null);
     setForm({
       name: site.name,
       url: site.url,
       logoUrl: site.logoUrl,
       category: site.category?._id ?? "",
       verified: site.verified,
+      ads: site.ads ?? "none",
+      quality: site.quality ?? "",
+      tags: site.tags ? site.tags.join(", ") : "",
+      requiresLogin: Boolean(site.requiresLogin),
     });
     setModalOpen(true);
   }
@@ -96,10 +144,17 @@ export default function SitesPage() {
 
   function handleSave() {
     startTransition(async () => {
+      const payload = {
+        ...form,
+        tags: form.tags
+          .split(",")
+          .map((t) => t.trim())
+          .filter(Boolean),
+      };
       if (editTarget) {
-        await updateSite(editTarget._id, form);
+        await updateSite(editTarget._id, payload);
       } else {
-        await createSite(form);
+        await createSite(payload);
       }
       setModalOpen(false);
       fetchData(page);
@@ -160,6 +215,39 @@ export default function SitesPage() {
         ) : (
           <span className="admin-badge admin-badge--muted">—</span>
         ),
+    },
+    {
+      key: "attributes",
+      label: "Attributes",
+      render: (row: Site) => (
+        <div className="flex flex-wrap gap-1 text-[11px]">
+          <span
+            className={`rounded px-1.5 py-0.5 font-medium ${
+              row.ads === "none"
+                ? "bg-emerald-500/15 text-emerald-400"
+                : row.ads === "low"
+                  ? "bg-amber-500/15 text-amber-400"
+                  : "bg-rose-500/15 text-rose-400"
+            }`}
+          >
+            {row.ads === "none" ? "No Ads" : row.ads === "low" ? "Few Ads" : "Ad-Heavy"}
+          </span>
+          {row.quality && (
+            <span className="rounded bg-cyan-500/15 px-1.5 py-0.5 font-medium text-cyan-300">
+              {row.quality}
+            </span>
+          )}
+          {row.requiresLogin ? (
+            <span className="rounded bg-zinc-500/20 px-1.5 py-0.5 text-zinc-300">
+              Login Req
+            </span>
+          ) : (
+            <span className="rounded bg-blue-500/15 px-1.5 py-0.5 text-blue-300">
+              No Login
+            </span>
+          )}
+        </div>
+      ),
     },
     {
       key: "verified",
@@ -256,7 +344,23 @@ export default function SitesPage() {
             />
           </div>
           <div className="admin-form__row">
-            <label className="admin-form__label">URL</label>
+            <div className="flex items-center justify-between mb-1">
+              <label className="admin-form__label mb-0">URL</label>
+              <button
+                type="button"
+                onClick={handleAIInspect}
+                disabled={aiInspecting || !form.url}
+                className="inline-flex items-center gap-1.5 rounded-md bg-(--primary)/15 px-2.5 py-1 text-xs font-semibold text-(--primary) hover:bg-(--primary)/25 disabled:opacity-40 transition-colors cursor-pointer"
+                title="Inspect URL with Gemini Flash to auto-fill details"
+              >
+                {aiInspecting ? (
+                  <Loader2 size={13} className="animate-spin" />
+                ) : (
+                  <Sparkles size={13} />
+                )}
+                {aiInspecting ? "Inspecting..." : "Auto-fill with Gemini AI"}
+              </button>
+            </div>
             <input
               id="site-url-input"
               className="admin-form__input"
@@ -264,17 +368,17 @@ export default function SitesPage() {
               onChange={(e) => setForm((f) => ({ ...f, url: e.target.value }))}
               placeholder="https://example.com"
             />
+            {aiFeedback && (
+              <p className="mt-1.5 text-xs text-cyan-300 bg-cyan-500/10 border border-cyan-500/20 rounded-md p-2">
+                {aiFeedback}
+              </p>
+            )}
           </div>
           <div className="admin-form__row">
-            <label className="admin-form__label">Logo URL</label>
-            <input
-              id="site-logo-input"
-              className="admin-form__input"
+            <ImageDropzone
               value={form.logoUrl}
-              onChange={(e) =>
-                setForm((f) => ({ ...f, logoUrl: e.target.value }))
-              }
-              placeholder="https://example.com/favicon.ico"
+              onChange={(url) => setForm((f) => ({ ...f, logoUrl: url }))}
+              label="Site Logo"
             />
           </div>
           <div className="admin-form__row">
@@ -294,6 +398,60 @@ export default function SitesPage() {
                 </option>
               ))}
             </select>
+          </div>
+          <div className="admin-form__row">
+            <label className="admin-form__label">Ads Level</label>
+            <select
+              id="site-ads-select"
+              className="admin-form__input admin-form__select"
+              value={form.ads}
+              onChange={(e) =>
+                setForm((f) => ({
+                  ...f,
+                  ads: e.target.value as "none" | "low" | "high",
+                }))
+              }
+            >
+              <option value="none">No Ads (Clean)</option>
+              <option value="low">Few Ads (Manageable)</option>
+              <option value="high">Ad-Heavy (Requires Adblock)</option>
+            </select>
+          </div>
+          <div className="admin-form__row">
+            <label className="admin-form__label">Quality (Resolution)</label>
+            <input
+              id="site-quality-input"
+              className="admin-form__input"
+              value={form.quality}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, quality: e.target.value }))
+              }
+              placeholder="e.g. 1080p, 4K, 720p, HD"
+            />
+          </div>
+          <div className="admin-form__row">
+            <label className="admin-form__label">Tags (comma-separated)</label>
+            <input
+              id="site-tags-input"
+              className="admin-form__input"
+              value={form.tags}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, tags: e.target.value }))
+              }
+              placeholder="e.g. Sub & Dub, Downloads, Fast"
+            />
+          </div>
+          <div className="admin-form__checkbox-row">
+            <label className="admin-form__label">Requires Login</label>
+            <input
+              id="site-login-input"
+              type="checkbox"
+              className="admin-form__checkbox"
+              checked={form.requiresLogin}
+              onChange={(e) =>
+                setForm((f) => ({ ...f, requiresLogin: e.target.checked }))
+              }
+            />
           </div>
           <div className="admin-form__checkbox-row">
             <label className="admin-form__label">Verified</label>

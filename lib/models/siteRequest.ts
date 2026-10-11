@@ -8,6 +8,15 @@ export interface ISiteRequest extends Document {
   submittedByEmail: string;
   status: "pending" | "approved" | "rejected";
   notes?: string;
+  aiRecommendation?: "approved" | "rejected";
+  aiReason?: string;
+  aiMetadata?: {
+    ads?: "none" | "low" | "high";
+    quality?: string;
+    tags?: string[];
+    requiresLogin?: boolean;
+    categorySuggestion?: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }
@@ -29,6 +38,18 @@ const SiteRequestSchema: Schema = new Schema<ISiteRequest>(
       default: "pending",
     },
     notes: { type: String, default: "" },
+    aiRecommendation: {
+      type: String,
+      enum: ["approved", "rejected"],
+    },
+    aiReason: { type: String, default: "" },
+    aiMetadata: {
+      ads: { type: String, enum: ["none", "low", "high"], default: "none" },
+      quality: { type: String, default: "" },
+      tags: { type: [String], default: [] },
+      requiresLogin: { type: Boolean, default: false },
+      categorySuggestion: { type: String, default: "" },
+    },
   },
   { timestamps: true },
 );

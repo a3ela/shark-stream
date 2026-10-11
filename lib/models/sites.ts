@@ -6,6 +6,10 @@ export interface ISite extends Document {
   logoUrl: string;
   category: mongoose.Types.ObjectId;
   verified: boolean;
+  ads?: "none" | "low" | "high";
+  quality?: string;
+  tags?: string[];
+  requiresLogin?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -21,6 +25,14 @@ const siteSchema: Schema = new Schema<ISite>(
       required: true,
     },
     verified: { type: Boolean, default: false },
+    ads: {
+      type: String,
+      enum: ["none", "low", "high"],
+      default: "none",
+    },
+    quality: { type: String, default: "" },
+    tags: { type: [String], default: [] },
+    requiresLogin: { type: Boolean, default: false },
   },
   { timestamps: true },
 );

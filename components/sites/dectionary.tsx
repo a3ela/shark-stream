@@ -20,6 +20,10 @@ interface SiteDoc {
   logoUrl: string;
   verified: boolean;
   category: { _id: string; name: string; slug: string } | string;
+  ads?: "none" | "low" | "high";
+  quality?: string;
+  tags?: string[];
+  requiresLogin?: boolean;
   createdAt: string;
 }
 
@@ -70,7 +74,11 @@ export default function Dectionary({
       const q = searchQuery.toLowerCase();
       result = result.filter(
         (s) =>
-          s.name.toLowerCase().includes(q) || s.url.toLowerCase().includes(q),
+          s.name.toLowerCase().includes(q) ||
+          s.url.toLowerCase().includes(q) ||
+          (s.quality && s.quality.toLowerCase().includes(q)) ||
+          (s.tags && s.tags.some((t) => t.toLowerCase().includes(q))) ||
+          (q === "no ads" && s.ads === "none"),
       );
     }
 

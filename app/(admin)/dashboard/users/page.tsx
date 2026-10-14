@@ -4,7 +4,7 @@ import { useState, useEffect, useTransition, useCallback } from "react";
 import { DataTable, Pagination } from "@/components/admin/data-table";
 import Modal from "@/components/admin/modal";
 import { getPaginatedUsers, updateUserRole, createUser } from "@/lib/actions/admin";
-import { Loader2, ShieldCheck, ShieldOff, Plus } from "lucide-react";
+import { Loader2, ShieldCheck, ShieldOff, Plus, Search, Users, X } from "lucide-react";
 
 interface User {
   _id: string;
@@ -30,8 +30,11 @@ export default function UsersPage() {
   }>({ items: [], total: 0, page: 1, totalPages: 1 });
 
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
+  const [notice, setNotice] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
   const [roleTarget, setRoleTarget] = useState<User | null>(null);
   const [roleModalOpen, setRoleModalOpen] = useState(false);
@@ -39,16 +42,22 @@ export default function UsersPage() {
   const [addUserOpen, setAddUserOpen] = useState(false);
   const [addForm, setAddForm] = useState(EMPTY_USER_FORM);
 
-  const fetchData = useCallback(async (p: number) => {
+  const fetchData = useCallback(async (p: number, q: string, role: string) => {
     setLoading(true);
-    const result = await getPaginatedUsers(p, 10);
-    setData(result);
-    setLoading(false);
+    try {
+      const result = await getPaginatedUsers(p, 10, q, role);
+      setData(result);
+    } catch (error) {
+      setNotice({ type: "error", text: error instanceof Error ? error.message : "Could not load users." });
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useEffect(() => {
-    void (async () => { await fetchData(page); })();
-  }, [page, fetchData]);
+    const timer = window.setTimeout(() => void fetchData(page, search, roleFilter), search ? 250 : 0);
+    return () => window.clearTimeout(timer);
+  }, [page, search, roleFilter, fetchData]);
 
   function openRoleModal(user: User) {
     setRoleTarget(user);
@@ -58,9 +67,14 @@ export default function UsersPage() {
   function handleRoleChange(newRole: "admin" | "user") {
     startTransition(async () => {
       if (roleTarget) {
-        await updateUserRole(roleTarget._id, newRole);
+        try {
+          await updateUserRole(roleTarget._id, newRole);
+          setNotice({ type: "success", text: `${roleTarget.name} is now ${newRole === "admin" ? "an admin" : "a regular user"}.` });
+        } catch (error) {
+          setNotice({ type: "error", text: error instanceof Error ? error.message : "Could not update this role." });
+        }
         setRoleModalOpen(false);
-        fetchData(page);
+        await fetchData(page, search, roleFilter);
       }
     });
   }
@@ -71,10 +85,10 @@ export default function UsersPage() {
         await createUser(addForm);
         setAddUserOpen(false);
         setAddForm(EMPTY_USER_FORM);
-        fetchData(page);
+        setNotice({ type: "success", text: `${addForm.name} was added successfully.` });
+        await fetchData(page, search, roleFilter);
       } catch (err) {
-        console.error(err);
-        alert("Failed to create user");
+        setNotice({ type: "error", text: err instanceof Error ? err.message : "Failed to create user." });
       }
     });
   }
@@ -120,6 +134,7 @@ export default function UsersPage() {
     <div className="admin-page">
       <div className="admin-page__header">
         <div>
+          <p className="admin-eyebrow"><Users size={14} /> Access & accounts</p>
           <h1 className="admin-page__title">Users</h1>
           <p className="admin-page__subtitle">
             {data.total} user{data.total !== 1 ? "s" : ""} registered
@@ -138,8 +153,28 @@ export default function UsersPage() {
         </button>
       </div>
 
+      <section className="admin-user-panel">
+        <div className="admin-user-toolbar">
+          <div className="admin-user-toolbar__copy">
+            <h2>All users</h2>
+            <p>Manage account access and administrator permissions.</p>
+          </div>
+          <div className="admin-user-controls">
+            <div className="admin-search">
+              <Search size={16} aria-hidden="true" />
+              <label className="sr-only" htmlFor="admin-user-search">Search users</label>
+              <input id="admin-user-search" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search name or email" />
+              {search && <button type="button" onClick={() => setSearch("")} aria-label="Clear search"><X size={15} /></button>}
+            </div>
+            <select aria-label="Filter users by role" className="admin-role-filter" value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}>
+              <option value="all">All roles</option><option value="admin">Admins</option><option value="user">Users</option>
+            </select>
+          </div>
+        </div>
+        {notice && <div className={`admin-notice admin-notice--${notice.type}`} role="status">{notice.text}<button onClick={() => setNotice(null)} aria-label="Dismiss message"><X size={15} /></button></div>}
+
       {loading ? (
-        <div className="admin-loading">
+        <div className="admin-loading admin-loading--table" aria-label="Loading users" role="status">
           <Loader2 size={32} className="admin-loading__spinner" />
         </div>
       ) : (
@@ -160,6 +195,7 @@ export default function UsersPage() {
                   }`}
                   onClick={() => openRoleModal(row)}
                   title={row.role === "admin" ? "Revoke Admin" : "Make Admin"}
+                  aria-label={row.role === "admin" ? `Revoke admin from ${row.name}` : `Make ${row.name} an admin`}
                 >
                   {row.role === "admin" ? (
                     <ShieldOff size={15} />
@@ -177,6 +213,7 @@ export default function UsersPage() {
           />
         </>
       )}
+      </section>
 
       {/* Add User Modal */}
       <Modal

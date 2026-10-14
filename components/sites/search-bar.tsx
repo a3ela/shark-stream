@@ -1,6 +1,6 @@
 "use client";
 
-import { Search } from "lucide-react";
+import { Search, X } from "lucide-react";
 
 interface SearchBarProps {
   value: string;
@@ -9,15 +9,18 @@ interface SearchBarProps {
 
 export default function SearchBar({ value, onChange }: SearchBarProps) {
   return (
-    <div className="relative w-full max-w-xs ml-auto">
-      <Search className="absolute left-0 top-1/2 h-5 w-5 -translate-y-1/2 text-(--text-secondary)" />
+    <div className="site-search">
+      <Search className="site-search__icon" aria-hidden="true" />
+      <label className="sr-only" htmlFor="site-directory-search">Search streaming sites</label>
       <input
+        id="site-directory-search"
         type="text"
-        placeholder="Find a Site..."
+        placeholder="Search sites, quality, or tags"
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full border-b border-(--border-color) py-2 pl-9 pr-4 text-sm text-(--text-primary) placeholder-(--text-secondary)/50 outline-none transition-colors focus:border-(--primary)"
+        className="site-search__input"
       />
+      {value && <button type="button" className="site-search__clear" onClick={() => onChange("")} aria-label="Clear site search"><X size={16} /></button>}
     </div>
   );
 }

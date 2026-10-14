@@ -12,7 +12,7 @@ import {
   getPaginatedCategories,
   inspectSiteWithAI,
 } from "@/lib/actions/admin";
-import { Plus, Pencil, Trash2, Loader2, ExternalLink, CheckCircle, XCircle, Sparkles } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, ExternalLink, CheckCircle, XCircle, Sparkles, Search, X } from "lucide-react";
 
 interface Category {
   _id: string;
@@ -57,6 +57,7 @@ export default function SitesPage() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
   const [isPending, startTransition] = useTransition();
 
@@ -98,10 +99,10 @@ export default function SitesPage() {
     }
   }
 
-  const fetchData = useCallback(async (p: number) => {
+  const fetchData = useCallback(async (p: number, q: string) => {
     setLoading(true);
     const [siteResult, catResult] = await Promise.all([
-      getPaginatedSites(p, 10),
+      getPaginatedSites(p, 10, q),
       getPaginatedCategories(1, 100),
     ]);
     setData(siteResult);
@@ -110,8 +111,9 @@ export default function SitesPage() {
   }, []);
 
   useEffect(() => {
-    void (async () => { await fetchData(page); })();
-  }, [page, fetchData]);
+    const timer = window.setTimeout(() => void fetchData(page, search), search ? 250 : 0);
+    return () => window.clearTimeout(timer);
+  }, [page, search, fetchData]);
 
   function openAdd() {
     setEditTarget(null);
@@ -157,7 +159,7 @@ export default function SitesPage() {
         await createSite(payload);
       }
       setModalOpen(false);
-      fetchData(page);
+      fetchData(page, search);
     });
   }
 
@@ -166,7 +168,7 @@ export default function SitesPage() {
       if (deleteTarget) {
         await deleteSite(deleteTarget._id);
         setDeleteConfirmOpen(false);
-        fetchData(page);
+        fetchData(page, search);
       }
     });
   }
@@ -270,6 +272,7 @@ export default function SitesPage() {
     <div className="admin-page">
       <div className="admin-page__header">
         <div>
+          <p className="admin-eyebrow"><span className="admin-status-dot" /> Catalog / Directory</p>
           <h1 className="admin-page__title">Sites</h1>
           <p className="admin-page__subtitle">
             {data.total} site{data.total !== 1 ? "s" : ""} total
@@ -283,6 +286,16 @@ export default function SitesPage() {
           <Plus size={16} />
           Add Site
         </button>
+      </div>
+
+      <div className="admin-sites-toolbar">
+        <div><strong>Site directory</strong><span>Find and maintain listings in your catalog.</span></div>
+        <div className="admin-search">
+          <Search size={16} aria-hidden="true" />
+          <label className="sr-only" htmlFor="admin-site-search">Search sites</label>
+          <input id="admin-site-search" value={search} onChange={(e) => { setSearch(e.target.value); setPage(1); }} placeholder="Search site name or URL" />
+          {search && <button type="button" onClick={() => setSearch("")} aria-label="Clear site search"><X size={15} /></button>}
+        </div>
       </div>
 
       {loading ? (

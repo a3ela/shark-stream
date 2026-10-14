@@ -10,47 +10,46 @@ interface BannerProps {
 const Banner = ({ siteCount }: BannerProps) => {
   return (
     <section className="relative z-10 flex flex-wrap items-center justify-evenly gap-8 px-6 py-5 md:px-12">
-      <div className="flex flex-col gap-2">
+      <div className="flex min-w-0 flex-col gap-2">
         <div className="flex items-center gap-4">
           <Image
             src="/logo.svg"
             alt="Shark Stream logo"
             width={120}
             height={120}
-            className="h-20 w-20 shrink-0 object-contain md:h-20 md:w-20"
+            className="h-14 w-14 shrink-0 object-contain sm:h-20 sm:w-20"
           />
-          <h1 className="text-shimmer font-unbounded text-5xl font-extrabold leading-none tracking-tight md:text-6xl">
+          <h1 className="text-shimmer font-unbounded text-3xl font-extrabold leading-none tracking-tight sm:text-5xl md:text-6xl">
             Shark Stream
           </h1>
         </div>
-        <p className="ml-1 text-lg text-(--text-secondary) md:ml-1.5 md:text-xl">
+        <p className="ml-1 text-base text-(--text-secondary) sm:text-lg md:ml-1.5 md:text-xl">
           Discover streaming sites, all in one place.
         </p>
       </div>
 
       <div
-        className="relative flex items-center justify-center"
-        style={{ width: 340, height: 300 }}
+        className="relative flex h-[250px] w-[280px] items-center justify-center sm:h-[300px] sm:w-[340px]"
       >
         <div
           className="pointer-events-none absolute rounded-full"
           style={{
-            width: 260,
-            height: 260,
+            width: "76%",
+            height: "86%",
             border: "1.5px dashed rgba(255,255,255,0.07)",
           }}
         />
         <div
           className="pointer-events-none absolute rounded-full"
           style={{
-            width: 340,
-            height: 340,
+            width: "100%",
+            height: "100%",
             border: "1.5px dashed rgba(255,255,255,0.04)",
           }}
         />
 
         <div
-          className="relative w-72 select-none rounded p-6"
+          className="relative w-[min(18rem,85vw)] select-none rounded p-5 sm:p-6"
           style={{
             transform: "rotate(-4deg)",
             background: "linear-gradient(145deg, #0e2030 0%, #0b1a25 100%)",
@@ -96,7 +95,7 @@ const Banner = ({ siteCount }: BannerProps) => {
 
         {/* Floating badge */}
         <div
-          className="absolute bottom-2 -right-20 flex items-center gap-2.5 rounded px-3.5 py-2.5"
+          className="absolute bottom-0 right-0 flex items-center gap-2 rounded px-3 py-2 sm:-right-10 sm:bottom-2 sm:gap-2.5 sm:px-3.5 sm:py-2.5"
           style={{
             transform: "rotate(4deg)",
             background: "linear-gradient(135deg, #0b1e2c 0%, #091520 100%)",

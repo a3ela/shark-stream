@@ -171,19 +171,28 @@ export async function deleteCategory(id: string) {
 
 // ─── Sites ───────────────────────────────────────────────────────────────────
 
-export async function getPaginatedSites(page = 1, limit = 10) {
+export async function getPaginatedSites(page = 1, limit = 10, search = "") {
   await requireAdmin();
   await connectDB();
 
   const pagination = paging(page, limit);
+  const normalizedSearch = search.trim();
+  const filter = normalizedSearch
+    ? {
+        $or: [
+          { name: { $regex: normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
+          { url: { $regex: normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), $options: "i" } },
+        ],
+      }
+    : {};
   const [items, total] = await Promise.all([
-    Site.find()
+    Site.find(filter)
       .populate("category", "name slug icon")
       .sort({ createdAt: -1 })
       .skip(pagination.skip)
       .limit(pagination.limit)
       .lean(),
-    Site.countDocuments(),
+    Site.countDocuments(filter),
   ]);
 
   return {
@@ -260,20 +269,30 @@ export async function deleteSite(id: string) {
 
 // ─── Users ───────────────────────────────────────────────────────────────────
 
-export async function getPaginatedUsers(page = 1, limit = 10) {
+export async function getPaginatedUsers(page = 1, limit = 10, search = "", role = "all") {
   await requireAdmin();
   const db = client.db();
 
   const pagination = paging(page, limit);
+  const query: import("mongodb").Filter<import("mongodb").Document> = {};
+  const normalizedSearch = search.trim();
+  if (normalizedSearch) {
+    const escapedSearch = normalizedSearch.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    query.$or = [
+      { name: { $regex: escapedSearch, $options: "i" } },
+      { email: { $regex: escapedSearch, $options: "i" } },
+    ];
+  }
+  if (role === "admin" || role === "user") query.role = role;
   const [items, total] = await Promise.all([
     db
       .collection("user")
-      .find({})
+      .find(query)
       .sort({ createdAt: -1 })
       .skip(pagination.skip)
       .limit(pagination.limit)
       .toArray(),
-    db.collection("user").countDocuments(),
+    db.collection("user").countDocuments(query),
   ]);
 
   return {
@@ -585,6 +604,32 @@ export async function submitSiteRequest(data: {
       submittedByEmail: session?.user.email ?? email,
     });
     requestCooldowns.set(email, now);
+
+    // Fire-and-forget: run AI analysis in background so admin sees pre-scored results
+    void (async () => {
+      try {
+        const categories = await Category.find({}, "_id name").lean();
+        const { analyzeSiteWithGemini } = await import("@/lib/ai");
+        const aiResult = await analyzeSiteWithGemini(
+          url,
+          categories.map((c) => ({ _id: String(c._id), name: c.name }))
+        );
+        await SiteRequest.findByIdAndUpdate(req._id, {
+          aiRecommendation: aiResult.statusRecommendation,
+          aiReason: aiResult.recommendationReason,
+          aiMetadata: {
+            ads: aiResult.ads,
+            quality: aiResult.quality,
+            tags: aiResult.tags,
+            requiresLogin: aiResult.requiresLogin,
+            categorySuggestion: aiResult.categorySuggestion,
+          },
+        });
+      } catch {
+        // Silent — AI failure should never block the user's submission
+      }
+    })();
+
     return { success: true, request: JSON.parse(JSON.stringify(req)) };
   } catch (error: unknown) {
     return {

@@ -51,6 +51,7 @@ export default async function DashboardOverviewPage() {
     <div className="admin-page">
       <div className="admin-page__header">
         <div>
+          <p className="admin-eyebrow"><span className="admin-status-dot" /> Shark Stream / Workspace</p>
           <h1 className="admin-page__title">Overview</h1>
           <p className="admin-page__subtitle">
             Welcome back! Here&apos;s what&apos;s happening with Shark Stream.
